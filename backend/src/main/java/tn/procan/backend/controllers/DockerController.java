@@ -16,6 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/docker")
+@SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Docker API", description = "Docker operations")
 public class DockerController {
 
