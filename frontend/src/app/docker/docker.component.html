@@ -1,0 +1,36 @@
+<div class="container mx-auto px-4">
+  <h1 class="text-2xl font-bold mt-6 mb-6">Docker Containers</h1>
+  <table class="table-auto w-full">
+    <thead>
+      <tr>
+        <th class="px-4 py-2">ID</th>
+        <th class="px-4 py-2">Name</th>
+        <th class="px-4 py-2">State</th>
+        <th class="px-4 py-2">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let container of containers">
+        <td class="border px-4 py-2">{{ container.id }}</td>
+        <td class="border px-4 py-2">{{ container.name }}</td>
+        <td class="border px-4 py-2">{{ container.state }}</td>
+        <td class="border px-4 py-2">
+          <button
+            *ngIf="container.state === 'stopped'"
+            (click)="startContainer(container.id)"
+            class="bg-green-500 text-white px-4 py-2 rounded"
+          >
+            Start
+          </button>
+          <button
+            *ngIf="container.state === 'running'"
+            (click)="stopContainer(container.id)"
+            class="bg-red-500 text-white px-4 py-2 rounded"
+          >
+            Stop
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
