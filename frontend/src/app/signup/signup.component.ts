@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
 import { AuthService } from '../_services/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-signup',
@@ -11,18 +11,23 @@ import { AuthService } from '../_services/auth.service';
   imports: [FormsModule, CommonModule],
 })
 export class SignupComponent {
-  user = { email: '', username: '', password: '' };
+  user = {
+    username: '',
+    email: '',
+    password: '',
+  };
 
   constructor(private authService: AuthService, private router: Router) {}
 
-  signup() {
-    this.authService.signup(this.user).subscribe(
-      () => {
+  signup(): void {
+    this.authService.signup(this.user).subscribe({
+      next: (response) => {
+        console.log('Signup successful', response);
         this.router.navigate(['/signin']);
       },
-      (error) => {
-        console.error('Error during sign up', error);
-      }
-    );
+      error: (error: any) => {
+        console.error('Signup failed', error);
+      },
+    });
   }
 }

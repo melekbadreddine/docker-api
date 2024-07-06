@@ -17,7 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/docker")
 @SecurityRequirement(name = "bearerAuth")
-@CrossOrigin(origins = "*", maxAge = 3600)
+@CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 @Tag(name = "Docker API", description = "Docker operations")
 public class DockerController {
 

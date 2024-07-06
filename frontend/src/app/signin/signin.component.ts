@@ -3,6 +3,8 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../_services/auth.service';
 import { Router } from '@angular/router';
+import { catchError, tap } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 @Component({
   selector: 'app-signin',
@@ -16,14 +18,24 @@ export class SigninComponent {
   constructor(private authService: AuthService, private router: Router) {}
 
   signin() {
-    this.authService.signin(this.credentials).subscribe(
-      (response: any) => {
-        localStorage.setItem('token', response.token);
-        this.router.navigate(['/docker']);
-      },
-      (error) => {
-        console.error('Error during sign in', error);
-      }
-    );
+    this.authService
+      .signin(this.credentials)
+      .pipe(
+        tap((response: any) => {
+          console.log('Sign-in response:', response);
+          if (response && response.accessToken) {
+            this.authService.setToken(response.accessToken);
+            console.log('Token stored:', response.accessToken);
+            this.router.navigate(['/docker']);
+          } else {
+            console.error('No token received in the response');
+          }
+        }),
+        catchError((error) => {
+          console.error('Error during sign in', error);
+          return of(null);
+        })
+      )
+      .subscribe();
   }
 }

@@ -11,20 +11,23 @@
     </thead>
     <tbody>
       <tr *ngFor="let container of containers">
-        <td class="border px-4 py-2">{{ container.id }}</td>
-        <td class="border px-4 py-2">{{ container.name }}</td>
-        <td class="border px-4 py-2">{{ container.state }}</td>
+        <td class="border px-4 py-2">{{ container.Id }}</td>
+        <td class="border px-4 py-2">{{ container.Names }}</td>
+        <td class="border px-4 py-2">{{ container.Status }}</td>
         <td class="border px-4 py-2">
           <button
-            *ngIf="container.state === 'stopped'"
-            (click)="startContainer(container.id)"
-            class="bg-green-500 text-white px-4 py-2 rounded"
+            *ngIf="
+              container.Status.startsWith('Exited') ||
+              container.Status === 'Created'
+            "
+            (click)="startContainer(container.Id)"
+            class="bg-blue-500 text-white px-4 py-2 rounded"
           >
             Start
           </button>
           <button
-            *ngIf="container.state === 'running'"
-            (click)="stopContainer(container.id)"
+            *ngIf="container.Status.startsWith('Up')"
+            (click)="stopContainer(container.Id)"
             class="bg-red-500 text-white px-4 py-2 rounded"
           >
             Stop
