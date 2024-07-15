@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class DockerService {
-  private baseUrl = 'http://localhost:8080/api/docker';
+  private baseUrl = 'http://192.168.49.2:30399/api/docker';
 
   constructor(private http: HttpClient) {}
 

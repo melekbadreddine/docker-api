@@ -8,7 +8,7 @@ import { catchError, tap } from 'rxjs/operators';
   providedIn: 'root',
 })
 export class AuthService {
-  private baseUrl = 'http://localhost:8080/api/auth';
+  private baseUrl = 'http://192.168.49.2:30399/api/auth';
 
   constructor(private http: HttpClient, private router: Router) {}
 
@@ -52,3 +52,4 @@ export class AuthService {
     this.router.navigate(['/signin']);
   }
 }
+
