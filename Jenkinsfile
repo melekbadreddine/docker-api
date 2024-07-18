@@ -50,6 +50,14 @@ pipeline {
                 }
             }
         }
+
+        stage('Docker Login') {
+            steps {
+                script {
+                    sh "echo ${DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${DOCKERHUB_USERNAME} --password-stdin"
+                }
+            }
+        }
         
         stage('Build Backend Image') {
             steps {
