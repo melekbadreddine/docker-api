@@ -78,8 +78,8 @@ pipeline {
         stage('Deploy to Minikube') {
             steps {
                 script {
-                    withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'minikube', namespace: '', serverUrl: '') {
-                        sh 'kubectl apply -f k8s'
+                    withKubeConfig(credentialsId: 'minikube') {
+                        sh 'kubectl apply -f k8s --validate=false --v=8'
                     }
                 }
             }
