@@ -79,7 +79,7 @@ pipeline {
             steps {
                 script {
                     withKubeConfig(caCertificate: '', clusterName: 'minikube', contextName: 'minikube', credentialsId: 'minikube', namespace: '', restrictKubeConfigAccess: false, serverUrl: 'https://192.168.49.2:8443') {
-                        sh 'kubectl apply -f k8s --validate=false --v=8'
+                        sh 'kubectl apply -f k8s'
                     }
                 }
             }
