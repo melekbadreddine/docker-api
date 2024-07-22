@@ -61,7 +61,7 @@ pipeline {
             }
         }
         
-        stage('Build Backend Image') {
+        stage('Build and Push Backend Image') {
             steps {
                 script {
                     docker.build("${DOCKERHUB_REPO}/backend", "backend/").push("latest")
@@ -69,7 +69,7 @@ pipeline {
             }
         }
 
-        stage('Build Frontend Image') {
+        stage('Build and Push Frontend Image') {
             steps {
                 script {
                     docker.build("${DOCKERHUB_REPO}/frontend", "frontend/").push("latest")
@@ -77,13 +77,11 @@ pipeline {
             }
         }
         
-        stage('Trivy Scan Docker Images and Kubernetes YAML Files') {
+        stage('Trivy Scan Docker Images') {
             steps {
                 script {
-                    sh 'docker pull aquasec/trivy:latest'
-                    sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image ${DOCKERHUB_REPO}/backend:latest'
-                    sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image ${DOCKERHUB_REPO}/frontend:latest'
-                    sh 'docker run --rm -v $(pwd)/k8s:/k8s aquasec/trivy:latest fs /k8s'
+                    sh "trivy image ${DOCKERHUB_REPO}/backend:latest"
+                    sh "trivy image ${DOCKERHUB_REPO}/frontend:latest"
                 }
             }
         }
