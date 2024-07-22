@@ -5,6 +5,7 @@ pipeline {
     }
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub')
+        SONAR_TOKEN = credentials('sonarqube')
         DOCKERHUB_USERNAME = 'melekbadreddine'
         DOCKERHUB_REPO = 'melekbadreddine'
     }
@@ -12,7 +13,6 @@ pipeline {
     tools {
         maven 'Maven3'
         nodejs 'NodeJS22'
-        sonarqube 'Sonar6'
     }
 
     stages {
@@ -49,7 +49,13 @@ pipeline {
                 script {
                     dir('frontend') {
                         withSonarQubeEnv('sonarqube') {
-                            sh "${tool('Sonar6')}/bin/sonar-scanner"
+                            sh """
+                                sonar-scanner \
+                                -Dsonar.projectKey=frontend \
+                                -Dsonar.sources=. \
+                                -Dsonar.host.url=http://localhost:9000 \
+                                -Dsonar.token=${SONAR_TOKEN}
+                            """
                             sh 'ng build --configuration production'
                         }
                     }
