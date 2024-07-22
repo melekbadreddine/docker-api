@@ -52,8 +52,8 @@ pipeline {
                             sh 'npx sonar-scanner \
                                 -Dsonar.projectKey=frontend \
                                 -Dsonar.sources=src \
-                                -Dsonar.host.url=$SONAR_HOST_URL \
-                                -Dsonar.login=$SONAR_AUTH_TOKEN'
+                                -Dsonar.host.url=http://localhost:9000 \
+                                -Dsonar.login=$SONAR_TOKEN'
                             sh 'ng build --configuration production'
                         }
                     }
