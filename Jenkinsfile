@@ -49,13 +49,11 @@ pipeline {
                 script {
                     dir('frontend') {
                         withSonarQubeEnv('sonarqube') {
-                            sh """
-                                sonar-scanner \
+                            sh 'npx sonar-scanner \
                                 -Dsonar.projectKey=frontend \
-                                -Dsonar.sources=. \
-                                -Dsonar.host.url=http://localhost:9000 \
-                                -Dsonar.token=${SONAR_TOKEN}
-                            """
+                                -Dsonar.sources=src \
+                                -Dsonar.host.url=$SONAR_HOST_URL \
+                                -Dsonar.login=$SONAR_AUTH_TOKEN'
                             sh 'ng build --configuration production'
                         }
                     }
