@@ -31,35 +31,41 @@ pipeline {
             }
         }
         
-        stage('Build Backend') {
+        stage('Build and Analyze Backend') {
             steps {
                 script {
                     dir('backend') {
-                        sh 'mvn clean package'
+                        withSonarQubeEnv('sonarqube') {
+                        sh 'mvn clean package sonar:sonar'
+                        }
                     }
                 }
             }
         }
 
-        stage('Build Frontend') {
+        stage('Build and Analyze Frontend') {
             steps {
                 script {
                     dir('frontend') {
-                        sh 'ng build --configuration production'
+                        withSonarQubeEnv('sonarqube') {
+                            sh 'npm run sonar'
+                            sh 'ng build --configuration production'
+                        }
                     }
-                }
-            }
-        }
-
-        stage('Docker Login') {
-            steps {
-                script {
-                    sh "echo ${DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${DOCKERHUB_USERNAME} --password-stdin"
                 }
             }
         }
         
-        stage('Build Backend Image') {
+        stage("Quality Gate"){
+            timeout(time: 1, unit: 'HOURS') {
+                def qg = waitForQualityGate()
+                if (qg.status != 'OK') {
+                    error "Pipeline aborted due to quality gate failure: ${qg.status}"
+                }
+            }
+        }
+        
+        stage('Build and Push Backend Image') {
             steps {
                 script {
                     docker.build("${DOCKERHUB_REPO}/backend", "backend/").push("latest")
@@ -67,10 +73,21 @@ pipeline {
             }
         }
 
-        stage('Build Frontend Image') {
+        stage('Build and Push Frontend Image') {
             steps {
                 script {
                     docker.build("${DOCKERHUB_REPO}/frontend", "frontend/").push("latest")
+                }
+            }
+        }
+        
+        stage('Trivy Scan Docker Images and Kubernetes YAML Files') {
+            steps {
+                script {
+                    sh 'docker pull aquasec/trivy:latest'
+                    sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image ${DOCKERHUB_REPO}/backend:latest'
+                    sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image ${DOCKERHUB_REPO}/frontend:latest'
+                    sh 'docker run --rm -v $(pwd)/k8s:/k8s aquasec/trivy:latest fs /k8s'
                 }
             }
         }
@@ -78,8 +95,10 @@ pipeline {
         stage('Deploy to Minikube') {
             steps {
                 script {
-                    withKubeConfig(caCertificate: '', clusterName: 'minikube', contextName: 'minikube', credentialsId: 'minikube', namespace: '', restrictKubeConfigAccess: false, serverUrl: 'https://192.168.49.2:8443') {
-                        sh 'kubectl apply -f k8s --validate=false --v=8'
+                    withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'minikube-credentials', namespace: '', serverUrl: '') {
+                        sh 'kubectl apply -f k8s/mysql.yaml'
+                        sh 'kubectl apply -f k8s/backend.yaml'
+                        sh 'kubectl apply -f k8s/frontend.yaml'
                     }
                 }
             }
