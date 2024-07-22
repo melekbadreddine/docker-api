@@ -12,6 +12,7 @@ pipeline {
     tools {
         maven 'Maven3'
         nodejs 'NodeJS22'
+        sonarqube 'Sonar6'
     }
 
     stages {
@@ -48,7 +49,7 @@ pipeline {
                 script {
                     dir('frontend') {
                         withSonarQubeEnv('sonarqube') {
-                            sh 'npm run sonar'
+                            sh "${tool('Sonar6')}/bin/sonar-scanner"
                             sh 'ng build --configuration production'
                         }
                     }
@@ -56,7 +57,7 @@ pipeline {
             }
         }
         
-        stage('Build and Push Backend Image') {
+        stage('Build Backend Image') {
             steps {
                 script {
                     docker.build("${DOCKERHUB_REPO}/backend", "backend/").push("latest")
@@ -64,7 +65,7 @@ pipeline {
             }
         }
 
-        stage('Build and Push Frontend Image') {
+        stage('Build Frontend Image') {
             steps {
                 script {
                     docker.build("${DOCKERHUB_REPO}/frontend", "frontend/").push("latest")
