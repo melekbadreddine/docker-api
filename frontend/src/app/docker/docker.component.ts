@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../_services/auth.service';
 import { Router } from '@angular/router';
 import { DockerService } from '../_services/docker.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-docker',
@@ -38,7 +39,9 @@ export class DockerComponent implements OnInit {
       error: (error) => {
         console.error('Error loading containers', error);
         if (error.status === 401) {
+          console.log('Unauthorized access, logging out');
           this.authService.logout();
+          this.router.navigate(['/signin']);
         }
       },
     });
@@ -46,22 +49,38 @@ export class DockerComponent implements OnInit {
 
   startContainer(id: string) {
     this.dockerService.startContainer(id).subscribe({
-      next: () => {
+      next: (response) => {
+        console.log('Container started successfully', response);
         this.loadContainers();
       },
       error: (error) => {
         console.error('Error starting container', error);
+        if (error.status === 401) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Unauthorized',
+            text: 'You do not have permission to start this container.',
+          });
+        }
       },
     });
   }
 
   stopContainer(id: string) {
     this.dockerService.stopContainer(id).subscribe({
-      next: () => {
+      next: (response) => {
+        console.log('Container stopped successfully', response);
         this.loadContainers();
       },
       error: (error) => {
         console.error('Error stopping container', error);
+        if (error.status === 401) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Unauthorized',
+            text: 'You do not have permission to stop this container.',
+          });
+        }
       },
     });
   }
