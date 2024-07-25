@@ -1,6 +1,6 @@
 <div class="container mx-auto px-4">
   <h1 class="text-2xl font-bold mt-6 mb-6">Docker Containers</h1>
-  <table class="table-auto w-full">
+  <table class="table-auto w-full mb-6">
     <thead>
       <tr>
         <th class="px-4 py-2">ID</th>
@@ -31,6 +31,37 @@
             class="bg-red-500 text-white px-4 py-2 rounded"
           >
             Stop
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h1 class="text-2xl font-bold mt-6 mb-6">Docker Images</h1>
+  <table class="table-auto w-full">
+    <thead>
+      <tr>
+        <th class="px-4 py-2">ID</th>
+        <th class="px-4 py-2">Repository</th>
+        <th class="px-4 py-2">Tag</th>
+        <th class="px-4 py-2">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let image of images">
+        <td class="border px-4 py-2">{{ image.Id }}</td>
+        <td class="border px-4 py-2">
+          {{ image.RepoTags[0]?.split(":")[0] || "N/A" }}
+        </td>
+        <td class="border px-4 py-2">
+          {{ image.RepoTags[0]?.split(":")[1] || "N/A" }}
+        </td>
+        <td class="border px-4 py-2">
+          <button
+            class="bg-red-500 text-white px-4 py-2 rounded"
+            (click)="deleteImage(image.RepoTags[0] || image.Id)"
+          >
+            Delete
           </button>
         </td>
       </tr>

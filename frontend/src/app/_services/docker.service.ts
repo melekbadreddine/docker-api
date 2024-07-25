@@ -14,6 +14,10 @@ export class DockerService {
     return this.http.get(`${this.baseUrl}/containers`);
   }
 
+  getImages(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/images`);
+  }
+
   startContainer(id: string): Observable<any> {
     console.log(`Starting container with ID: ${id}`);
     return this.http
@@ -43,5 +47,20 @@ export class DockerService {
         headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
       }
     );
+  }
+
+  deleteImage(imageName: string): Observable<any> {
+    return this.http
+      .delete(`${this.baseUrl}/images?imageName=${imageName}`, {
+        responseType: 'text',
+        headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+      })
+      .pipe(
+        tap((response) => console.log('Delete image response:', response)),
+        catchError((error) => {
+          console.error('Error in deleteImage:', error);
+          return throwError(() => error);
+        })
+      );
   }
 }
