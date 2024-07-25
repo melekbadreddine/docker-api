@@ -63,4 +63,67 @@ export class DockerService {
         })
       );
   }
+
+  deleteContainer(id: string): Observable<any> {
+    return this.http
+      .delete(`${this.baseUrl}/containers?containerId=${id}`, {
+        responseType: 'text',
+        headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+      })
+      .pipe(
+        tap((response) => console.log('Delete container response:', response)),
+        catchError((error) => {
+          console.error('Error in deleteContainer:', error);
+          return throwError(() => error);
+        })
+      );
+  }
+
+  createContainer(
+    imageName: string,
+    hostPort: number,
+    containerPort: number
+  ): Observable<any> {
+    return this.http
+      .post(
+        `${this.baseUrl}/containers/create`,
+        {},
+        {
+          params: {
+            imageName: imageName,
+            hostPort: hostPort.toString(),
+            containerPort: containerPort.toString(),
+          },
+          responseType: 'json',
+          headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+        }
+      )
+      .pipe(
+        tap((response) => console.log('Create container response:', response)),
+        catchError((error) => {
+          console.error('Error in createContainer:', error);
+          return throwError(() => error);
+        })
+      );
+  }
+
+  pullImage(repository: string, tag: string): Observable<any> {
+    return this.http
+      .post(
+        `${this.baseUrl}/images/pull`,
+        {},
+        {
+          params: { repository, tag },
+          responseType: 'text',
+          headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+        }
+      )
+      .pipe(
+        tap((response) => console.log('Pull image response:', response)),
+        catchError((error) => {
+          console.error('Error in pullImage:', error);
+          return throwError(() => error);
+        })
+      );
+  }
 }

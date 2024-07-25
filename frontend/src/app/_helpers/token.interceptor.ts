@@ -8,6 +8,10 @@ export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
 
   console.log('Interceptor - Token:', token);
 
+  if (req.url.includes('/signup')) {
+    return next(req);
+  }
+
   if (token) {
     const clonedReq = req.clone({
       headers: req.headers.set('Authorization', `Bearer ${token}`),

@@ -46,6 +46,46 @@
         </div>
       </div>
 
+      <div class="mt-4">
+        <label class="block text-sm font-medium text-gray-700">Role</label>
+        <div class="flex items-center">
+          <input
+            id="role-user"
+            name="role-user"
+            type="checkbox"
+            [(ngModel)]="roles.user"
+            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+          />
+          <label for="role-user" class="ml-2 block text-sm text-gray-900"
+            >User</label
+          >
+        </div>
+        <div class="flex items-center mt-2">
+          <input
+            id="role-mod"
+            name="role-mod"
+            type="checkbox"
+            [(ngModel)]="roles.moderator"
+            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+          />
+          <label for="role-mod" class="ml-2 block text-sm text-gray-900"
+            >Moderator</label
+          >
+        </div>
+        <div class="flex items-center mt-2">
+          <input
+            id="role-admin"
+            name="role-admin"
+            type="checkbox"
+            [(ngModel)]="roles.admin"
+            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+          />
+          <label for="role-admin" class="ml-2 block text-sm text-gray-900"
+            >Admin</label
+          >
+        </div>
+      </div>
+
       <div>
         <button
           type="submit"

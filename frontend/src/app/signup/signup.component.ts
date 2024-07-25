@@ -17,10 +17,21 @@ export class SignupComponent {
     password: '',
   };
 
+  roles: { [key in 'user' | 'moderator' | 'admin']: boolean } = {
+    user: false,
+    moderator: false,
+    admin: false,
+  };
+
   constructor(private authService: AuthService, private router: Router) {}
 
   signup(): void {
-    this.authService.signup(this.user).subscribe({
+    const selectedRoles = Object.keys(this.roles)
+      .filter((key) => this.roles[key as 'user' | 'moderator' | 'admin'])
+      .map((key) => key.toUpperCase());
+    const signupData = { ...this.user, role: selectedRoles };
+
+    this.authService.signup(signupData).subscribe({
       next: (response) => {
         console.log('Signup successful', response);
         this.router.navigate(['/signin']);

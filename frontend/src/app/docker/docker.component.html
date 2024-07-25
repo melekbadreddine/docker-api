@@ -1,70 +1,112 @@
 <div class="container mx-auto px-4">
-  <h1 class="text-2xl font-bold mt-6 mb-6">Docker Containers</h1>
-  <table class="table-auto w-full mb-6">
-    <thead>
-      <tr>
-        <th class="px-4 py-2">ID</th>
-        <th class="px-4 py-2">Name</th>
-        <th class="px-4 py-2">State</th>
-        <th class="px-4 py-2">Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let container of containers">
-        <td class="border px-4 py-2">{{ container.Id }}</td>
-        <td class="border px-4 py-2">{{ container.Names }}</td>
-        <td class="border px-4 py-2">{{ container.Status }}</td>
-        <td class="border px-4 py-2">
-          <button
-            *ngIf="
-              container.Status.startsWith('Exited') ||
-              container.Status === 'Created'
-            "
-            (click)="startContainer(container.Id)"
-            class="bg-blue-500 text-white px-4 py-2 rounded"
-          >
-            Start
-          </button>
-          <button
-            *ngIf="container.Status.startsWith('Up')"
-            (click)="stopContainer(container.Id)"
-            class="bg-red-500 text-white px-4 py-2 rounded"
-          >
-            Stop
-          </button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <details class="mb-6">
+    <summary class="text-2xl font-bold cursor-pointer">
+      Pull Docker Image
+    </summary>
+    <div class="mt-4">
+      <input
+        type="text"
+        [(ngModel)]="imageToPull"
+        placeholder="Image name"
+        class="px-4 py-2 border rounded mr-2"
+      />
+      <button
+        (click)="pullImage()"
+        class="bg-blue-500 text-white px-4 py-2 rounded"
+      >
+        Pull Image
+      </button>
+      <div *ngIf="isPulling" class="mt-4 flex flex-col items-center">
+        <div class="loader mb-2"></div>
+        <p class="text-blue-500 font-semibold">Pulling image, please wait...</p>
+      </div>
+    </div>
+  </details>
 
-  <h1 class="text-2xl font-bold mt-6 mb-6">Docker Images</h1>
-  <table class="table-auto w-full">
-    <thead>
-      <tr>
-        <th class="px-4 py-2">ID</th>
-        <th class="px-4 py-2">Repository</th>
-        <th class="px-4 py-2">Tag</th>
-        <th class="px-4 py-2">Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let image of images">
-        <td class="border px-4 py-2">{{ image.Id }}</td>
-        <td class="border px-4 py-2">
-          {{ image.RepoTags[0]?.split(":")[0] || "N/A" }}
-        </td>
-        <td class="border px-4 py-2">
-          {{ image.RepoTags[0]?.split(":")[1] || "N/A" }}
-        </td>
-        <td class="border px-4 py-2">
-          <button
-            class="bg-red-500 text-white px-4 py-2 rounded"
-            (click)="deleteImage(image.RepoTags[0] || image.Id)"
-          >
-            Delete
-          </button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <details class="mb-6">
+    <summary class="text-2xl font-bold cursor-pointer">Docker Images</summary>
+    <table class="table-auto w-full mt-4">
+      <thead>
+        <tr>
+          <th class="px-4 py-2">ID</th>
+          <th class="px-4 py-2">Repository</th>
+          <th class="px-4 py-2">Tag</th>
+          <th class="px-4 py-2">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let image of images">
+          <td class="border px-4 py-2">{{ image.Id }}</td>
+          <td class="border px-4 py-2">
+            {{ image.RepoTags[0]?.split(":")[0] || "N/A" }}
+          </td>
+          <td class="border px-4 py-2">
+            {{ image.RepoTags[0]?.split(":")[1] || "N/A" }}
+          </td>
+          <td class="border px-4 py-2">
+            <button
+              class="bg-red-500 text-white px-4 py-2 rounded mr-2"
+              (click)="deleteImage(image.RepoTags[0] || image.Id)"
+            >
+              <i class="fas fa-trash-alt"></i>
+            </button>
+            <button
+              class="bg-green-500 text-white px-4 py-2 rounded"
+              (click)="createContainer(image.RepoTags[0] || image.Id)"
+            >
+              <i class="fas fa-box-open"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </details>
+
+  <details class="mb-6">
+    <summary class="text-2xl font-bold cursor-pointer">
+      Docker Containers
+    </summary>
+    <table class="table-auto w-full mt-4">
+      <thead>
+        <tr>
+          <th class="px-4 py-2">ID</th>
+          <th class="px-4 py-2">Name</th>
+          <th class="px-4 py-2">State</th>
+          <th class="px-4 py-2">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let container of containers">
+          <td class="border px-4 py-2">{{ container.Id }}</td>
+          <td class="border px-4 py-2">{{ container.Names }}</td>
+          <td class="border px-4 py-2">{{ container.Status }}</td>
+          <td class="border px-4 py-2">
+            <button
+              *ngIf="
+                container.Status.startsWith('Exited') ||
+                container.Status === 'Created'
+              "
+              (click)="startContainer(container.Id)"
+              class="bg-blue-500 text-white px-4 py-2 rounded mr-2"
+            >
+              <i class="fas fa-play"></i>
+            </button>
+            <button
+              *ngIf="container.Status.startsWith('Up')"
+              (click)="stopContainer(container.Id)"
+              class="bg-red-500 text-white px-4 py-2 rounded mr-2"
+            >
+              <i class="fas fa-stop"></i>
+            </button>
+            <button
+              (click)="deleteContainer(container.Id)"
+              class="bg-red-500 text-white px-4 py-2 rounded"
+            >
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </details>
 </div>
