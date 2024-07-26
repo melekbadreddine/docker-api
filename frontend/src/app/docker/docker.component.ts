@@ -9,6 +9,7 @@ import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-docker',
   templateUrl: './docker.component.html',
+  styleUrls: ['./docker.component.scss'],
   standalone: true,
   imports: [CommonModule, FormsModule],
 })
@@ -178,11 +179,7 @@ export class DockerComponent implements OnInit {
         const { hostPort, containerPort } = result.value;
         if (hostPort && containerPort) {
           this.dockerService
-            .createContainer(
-              imageName,
-              Number(hostPort),
-              Number(containerPort)
-            )
+            .createContainer(imageName, Number(hostPort), Number(containerPort))
             .subscribe({
               next: (response) => {
                 console.log('Container created successfully', response);

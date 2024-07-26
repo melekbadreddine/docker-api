@@ -9,6 +9,7 @@ import { of } from 'rxjs';
 @Component({
   selector: 'app-signin',
   templateUrl: './signin.component.html',
+  styleUrls: ['./signin.component.scss'],
   standalone: true,
   imports: [FormsModule, CommonModule],
 })

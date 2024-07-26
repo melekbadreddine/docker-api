@@ -36,21 +36,29 @@ input:focus {
   outline: none;
 }
 
+/* Align buttons within table cells */
+td .button-container {
+  display: flex;
+  gap: 10px;
+}
+
 button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: none;
   border-radius: 8px;
   padding: 10px 20px;
   font-size: 1rem;
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  margin: 0;
 }
 
 button i {
   margin-right: 5px;
 }
+
 
 button:hover {
   transform: scale(1.05);

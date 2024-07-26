@@ -3,10 +3,13 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../_services/auth.service';
 import { Router } from '@angular/router';
+import { catchError, tap } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 @Component({
   selector: 'app-signup',
   templateUrl: './signup.component.html',
+  styleUrls: ['./signup.component.scss'],
   standalone: true,
   imports: [FormsModule, CommonModule],
 })
@@ -17,28 +20,36 @@ export class SignupComponent {
     password: '',
   };
 
-  roles: { [key in 'user' | 'moderator' | 'admin']: boolean } = {
-    user: false,
+  roles = {
+    user: true,
     moderator: false,
     admin: false,
   };
 
   constructor(private authService: AuthService, private router: Router) {}
 
-  signup(): void {
-    const selectedRoles = Object.keys(this.roles)
-      .filter((key) => this.roles[key as 'user' | 'moderator' | 'admin'])
-      .map((key) => key.toUpperCase());
-    const signupData = { ...this.user, role: selectedRoles };
+  signup() {
+    const selectedRoles = Object.keys(this.roles).filter(
+      (role) => this.roles[role as keyof typeof this.roles]
+    );
 
-    this.authService.signup(signupData).subscribe({
-      next: (response) => {
-        console.log('Signup successful', response);
-        this.router.navigate(['/signin']);
-      },
-      error: (error: any) => {
-        console.error('Signup failed', error);
-      },
-    });
+    const signupData = {
+      ...this.user,
+      role: selectedRoles,
+    };
+
+    this.authService
+      .signup(signupData)
+      .pipe(
+        tap((response: any) => {
+          console.log('Sign-up response:', response);
+          this.router.navigate(['/signin']);
+        }),
+        catchError((error) => {
+          console.error('Error during sign up', error);
+          return of(null);
+        })
+      )
+      .subscribe();
   }
 }

@@ -44,18 +44,20 @@
             {{ image.RepoTags[0]?.split(":")[1] || "N/A" }}
           </td>
           <td class="border px-4 py-2">
-            <button
-              class="bg-red-500 text-white px-4 py-2 rounded mr-2"
-              (click)="deleteImage(image.RepoTags[0] || image.Id)"
-            >
-              <i class="fas fa-trash-alt"></i>
-            </button>
-            <button
-              class="bg-green-500 text-white px-4 py-2 rounded"
-              (click)="createContainer(image.RepoTags[0] || image.Id)"
-            >
-              <i class="fas fa-box-open"></i>
-            </button>
+            <div class="button-container">
+              <button
+                class="bg-red-500 text-white px-4 py-2 rounded"
+                (click)="deleteImage(image.RepoTags[0] || image.Id)"
+              >
+                <i class="fas fa-trash-alt"></i>
+              </button>
+              <button
+                class="bg-green-500 text-white px-4 py-2 rounded"
+                (click)="createContainer(image.RepoTags[0] || image.Id)"
+              >
+                <i class="fas fa-box-open"></i>
+              </button>
+            </div>
           </td>
         </tr>
       </tbody>
@@ -81,29 +83,31 @@
           <td class="border px-4 py-2">{{ container.Names }}</td>
           <td class="border px-4 py-2">{{ container.Status }}</td>
           <td class="border px-4 py-2">
-            <button
-              *ngIf="
-                container.Status.startsWith('Exited') ||
-                container.Status === 'Created'
-              "
-              (click)="startContainer(container.Id)"
-              class="bg-blue-500 text-white px-4 py-2 rounded mr-2"
-            >
-              <i class="fas fa-play"></i>
-            </button>
-            <button
-              *ngIf="container.Status.startsWith('Up')"
-              (click)="stopContainer(container.Id)"
-              class="bg-red-500 text-white px-4 py-2 rounded mr-2"
-            >
-              <i class="fas fa-stop"></i>
-            </button>
-            <button
-              (click)="deleteContainer(container.Id)"
-              class="bg-red-500 text-white px-4 py-2 rounded"
-            >
-              <i class="fas fa-trash-alt"></i>
-            </button>
+            <div class="button-container">
+              <button
+                *ngIf="
+                  container.Status.startsWith('Exited') ||
+                  container.Status === 'Created'
+                "
+                (click)="startContainer(container.Id)"
+                class="bg-blue-500 text-white px-4 py-2 rounded"
+              >
+                <i class="fas fa-play"></i>
+              </button>
+              <button
+                *ngIf="container.Status.startsWith('Up')"
+                (click)="stopContainer(container.Id)"
+                class="bg-red-500 text-white px-4 py-2 rounded"
+              >
+                <i class="fas fa-stop"></i>
+              </button>
+              <button
+                (click)="deleteContainer(container.Id)"
+                class="bg-red-500 text-white px-4 py-2 rounded"
+              >
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </div>
           </td>
         </tr>
       </tbody>
