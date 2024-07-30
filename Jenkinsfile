@@ -4,10 +4,13 @@ pipeline {
         githubPush()
     }
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub')
-        SONAR_TOKEN = credentials('sonarqube')
-        DOCKERHUB_USERNAME = 'melekbadreddine'
+        RELEASE = "1.0.0"
         DOCKERHUB_REPO = 'melekbadreddine'
+        DOCKERHUB_USERNAME = 'melekbadreddine'
+        IMAGE_TAG = '${RELEASE}-${BUILD_NUMBER}'
+        SONAR_TOKEN = credentials('sonar-token')
+        JENKINS_API_TOKEN = credentials('jenkins')
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub')
     }
 
     tools {
@@ -36,8 +39,8 @@ pipeline {
             steps {
                 script {
                     dir('backend') {
-                        withSonarQubeEnv('sonarqube') {
-                        sh 'mvn clean package sonar:sonar'
+                        withSonarQubeEnv('sonar-token') {
+                            sh 'mvn clean package sonar:sonar'
                         }
                     }
                 }
@@ -49,22 +52,30 @@ pipeline {
                 script {
                     dir('frontend') {
                         withSonarQubeEnv('sonarqube') {
-                            sh 'npx sonar-scanner \
+                            sh '''
+                                npx sonar-scanner \
                                 -Dsonar.projectKey=frontend \
                                 -Dsonar.sources=src \
-                                -Dsonar.host.url=http://localhost:9000 \
-                                -Dsonar.login=$SONAR_TOKEN'
+                                -Dsonar.host.url=http://52.143.128.221:9000 \
+                                -Dsonar.login=$SONAR_TOKEN
+                            '''
                             sh 'ng build --configuration production'
                         }
                     }
                 }
             }
         }
+
+        stage('TRIVY FS SCAN') {
+            steps {
+                sh "trivy fs . > trivyfs.txt"
+            }
+        }
         
         stage('Build and Push Backend Image') {
             steps {
                 script {
-                    docker.build("${DOCKERHUB_REPO}/backend", "backend/").push("latest")
+                    docker.build("${DOCKERHUB_REPO}/backend", "backend/").push("${IMAGE_TAG}")
                 }
             }
         }
@@ -72,28 +83,24 @@ pipeline {
         stage('Build and Push Frontend Image') {
             steps {
                 script {
-                    docker.build("${DOCKERHUB_REPO}/frontend", "frontend/").push("latest")
-                }
-            }
-        }
-        
-        stage('Trivy Scan Docker Images') {
-            steps {
-                script {
-                    sh "trivy image ${DOCKERHUB_REPO}/backend:latest"
-                    sh "trivy image ${DOCKERHUB_REPO}/frontend:latest"
+                    docker.build("${DOCKERHUB_REPO}/frontend", "frontend/").push("${IMAGE_TAG}")
                 }
             }
         }
 
-        stage('Deploy to Minikube') {
+        stage('Trivy Scan Docker Images') {
             steps {
                 script {
-                    withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'minikube-credentials', namespace: '', serverUrl: '') {
-                        sh 'kubectl apply -f k8s/mysql.yaml'
-                        sh 'kubectl apply -f k8s/backend.yaml'
-                        sh 'kubectl apply -f k8s/frontend.yaml'
-                    }
+                    sh "docker run -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image ${DOCKERHUB_REPO}/backend:${IMAGE_TAG} --no-progress --scanners vuln --exit-code 0 --severity HIGH,CRITICAL --format table > trivy_backend.txt"
+                    sh "docker run -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image ${DOCKERHUB_REPO}/frontend:${IMAGE_TAG} --no-progress --scanners vuln --exit-code 0 --severity HIGH,CRITICAL --format table > trivy_frontend.txt"
+                }
+            }
+        }
+
+        stage("Trigger CD Pipeline") {
+            steps {
+                script {
+                    sh "curl -v -k --user melekbadreddine:${JENKINS_API_TOKEN} -X POST -H 'cache-control: no-cache' -H 'content-type: application/x-www-form-urlencoded' --data 'IMAGE_TAG=${IMAGE_TAG}' 'http://52.143.128.221:8080/job/docker-api-cd/buildWithParameters?token=gitops-token'"
                 }
             }
         }
@@ -101,7 +108,13 @@ pipeline {
 
     post {
         always {
-            cleanWs()
+           emailext attachLog: true,
+               subject: "'${currentBuild.result}'",
+               body: "Project: ${env.JOB_NAME}<br/>" +
+                   "Build Number: ${env.BUILD_NUMBER}<br/>" +
+                   "URL: ${env.BUILD_URL}<br/>",
+               to: 'mbadreddine5@gmail.com',                              
+               attachmentsPattern: 'trivyfs.txt,trivy_backend.txt,trivy_frontend.txt'
         }
-    }
+     }
 }
