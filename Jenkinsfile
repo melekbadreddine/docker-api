@@ -8,7 +8,7 @@ pipeline {
         DOCKERHUB_REPO = 'melekbadreddine'
         DOCKERHUB_USERNAME = 'melekbadreddine'
         IMAGE_TAG = '${RELEASE}-${BUILD_NUMBER}'
-        SONAR_TOKEN = credentials('sonar-token')
+        SONAR_TOKEN = credentials('sonarqube')
         JENKINS_API_TOKEN = credentials('jenkins')
         DOCKERHUB_CREDENTIALS = credentials('dockerhub')
     }
@@ -39,7 +39,7 @@ pipeline {
             steps {
                 script {
                     dir('backend') {
-                        withSonarQubeEnv('sonar-token') {
+                        withSonarQubeEnv('sonarqube') {
                             sh 'mvn clean package sonar:sonar'
                         }
                     }
