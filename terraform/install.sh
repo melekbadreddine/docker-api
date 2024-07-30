@@ -4,8 +4,8 @@
 sudo apt-get update -y
 sudo apt-get install -y curl apt-transport-https ca-certificates software-properties-common gnupg2
 
-# Install Java JDK 17
-sudo apt-get install -y openjdk-17-jdk
+# Install Java JDK 21
+sudo apt-get install -y openjdk-21-jdk
 
 # Install Jenkins
 curl -fsSL https://pkg.jenkins.io/debian/jenkins.io.key | sudo tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null
