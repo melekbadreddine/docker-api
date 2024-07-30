@@ -7,7 +7,7 @@ pipeline {
         RELEASE = "1.0.0"
         DOCKERHUB_REPO = 'melekbadreddine'
         DOCKERHUB_USERNAME = 'melekbadreddine'
-        IMAGE_TAG = '${RELEASE}-${BUILD_NUMBER}'
+        IMAGE_TAG = "${RELEASE}-${BUILD_NUMBER}"
         SONAR_TOKEN = credentials('sonarqube')
         JENKINS_API_TOKEN = credentials('jenkins')
         DOCKERHUB_CREDENTIALS = credentials('dockerhub')
@@ -52,9 +52,13 @@ pipeline {
                 script {
                     dir('frontend') {
                         withSonarQubeEnv('sonarqube') {
-                            sh 'npx sonar-scanner \
-                                -Dsonar.projectName=frontend
-                                -Dsonar.projectKey=frontend'
+                            sh '''
+                                npx sonar-scanner \
+                                    -Dsonar.projectKey=frontend \
+                                    -Dsonar.sources=. \
+                                    -Dsonar.host.url=http://52.143.128.221:9000 \
+                                    -Dsonar.login=${SONAR_TOKEN}
+                            '''
                             sh 'ng build --configuration production'
                         }
                     }
@@ -104,13 +108,13 @@ pipeline {
 
     post {
         always {
-           emailext attachLog: true,
-               subject: "'${currentBuild.result}'",
-               body: "Project: ${env.JOB_NAME}<br/>" +
-                   "Build Number: ${env.BUILD_NUMBER}<br/>" +
-                   "URL: ${env.BUILD_URL}<br/>",
-               to: 'mbadreddine5@gmail.com',                              
-               attachmentsPattern: 'trivyfs.txt,trivy_backend.txt,trivy_frontend.txt'
+            emailext attachLog: true,
+                subject: "'${currentBuild.result}'",
+                body: "Project: ${env.JOB_NAME}<br/>" +
+                    "Build Number: ${env.BUILD_NUMBER}<br/>" +
+                    "URL: ${env.BUILD_URL}<br/>",
+                to: 'mbadreddine5@gmail.com',                              
+                attachmentsPattern: 'trivyfs.txt,trivy_backend.txt,trivy_frontend.txt'
         }
-     }
+    }
 }
