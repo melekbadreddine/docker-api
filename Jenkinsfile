@@ -75,7 +75,11 @@ pipeline {
         stage('Build and Push Backend Image') {
             steps {
                 script {
-                    docker.build("${DOCKERHUB_REPO}/backend", "backend/").push("${IMAGE_TAG}")
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
+                        def backendImage = docker.build("${DOCKERHUB_REPO}/backend:${IMAGE_TAG}", "backend/")
+                        backendImage.push()
+                        backendImage.push('latest')
+                    }
                 }
             }
         }
@@ -83,7 +87,11 @@ pipeline {
         stage('Build and Push Frontend Image') {
             steps {
                 script {
-                    docker.build("${DOCKERHUB_REPO}/frontend", "frontend/").push("${IMAGE_TAG}")
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
+                        def frontendImage = docker.build("${DOCKERHUB_REPO}/frontend:${IMAGE_TAG}", "frontend/")
+                        frontendImage.push()
+                        frontendImage.push('latest')
+                    }
                 }
             }
         }
