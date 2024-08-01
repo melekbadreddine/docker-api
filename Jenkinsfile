@@ -91,8 +91,8 @@ pipeline {
         stage('Trivy Scan Docker Images') {
             steps {
                 script {
-                    sh "docker run -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image ${DOCKERHUB_REPO}/backend:${IMAGE_TAG} --no-progress --scanners vuln --exit-code 0 --severity HIGH,CRITICAL --format table > trivy_backend.txt"
-                    sh "docker run -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image ${DOCKERHUB_REPO}/frontend:${IMAGE_TAG} --no-progress --scanners vuln --exit-code 0 --severity HIGH,CRITICAL --format table > trivy_frontend.txt"
+                    sh "trivy image ${DOCKERHUB_REPO}/backend:${IMAGE_TAG} --no-progress --scanners vuln --exit-code 0 --severity HIGH,CRITICAL --format table > trivy_backend.txt"
+                    sh "trivy image ${DOCKERHUB_REPO}/frontend:${IMAGE_TAG} --no-progress --scanners vuln --exit-code 0 --severity HIGH,CRITICAL --format table > trivy_frontend.txt"
                 }
             }
         }
