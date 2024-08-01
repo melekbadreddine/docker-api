@@ -14,6 +14,7 @@ import java.security.Key;
 import java.util.Date;
 
 @Component
+@SuppressWarnings("deprecation")
 public class JwtUtils {
   private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
 
