@@ -7,7 +7,7 @@ pipeline {
         RELEASE = "1.0.0"
         DOCKERHUB_REPO = 'melekbadreddine'
         DOCKERHUB_USERNAME = 'melekbadreddine'
-        IMAGE_TAG = "${RELEASE}-${BUILD_NUMBER}"
+        IMAGE_TAG = "latest"
         SONAR_TOKEN = credentials('sonarqube')
         JENKINS_API_TOKEN = credentials('jenkins')
         DOCKERHUB_CREDENTIALS = credentials('dockerhub')
@@ -66,20 +66,18 @@ pipeline {
             }
         }
 
-        stage('TRIVY FS SCAN') {
+        stage('Docker Login') {
             steps {
-                sh "trivy fs . > trivyfs.txt"
+                script {
+                    sh 'docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_CREDENTIALS}'
+                }
             }
         }
         
         stage('Build and Push Backend Image') {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
-                        def backendImage = docker.build("${DOCKERHUB_REPO}/backend:${IMAGE_TAG}", "backend/")
-                        backendImage.push()
-                        backendImage.push('latest')
-                    }
+                    docker.build("${DOCKERHUB_REPO}/backend", "backend/").push("${IMAGE_TAG}")
                 }
             }
         }
@@ -87,11 +85,7 @@ pipeline {
         stage('Build and Push Frontend Image') {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
-                        def frontendImage = docker.build("${DOCKERHUB_REPO}/frontend:${IMAGE_TAG}", "frontend/")
-                        frontendImage.push()
-                        frontendImage.push('latest')
-                    }
+                    docker.build("${DOCKERHUB_REPO}/frontend", "frontend/").push("${IMAGE_TAG}")
                 }
             }
         }
@@ -99,8 +93,8 @@ pipeline {
         stage('Trivy Scan Docker Images') {
             steps {
                 script {
-                    sh "trivy image ${DOCKERHUB_REPO}/backend:${IMAGE_TAG} --no-progress --scanners vuln --exit-code 0 --severity HIGH,CRITICAL --format table > trivy_backend.txt"
-                    sh "trivy image ${DOCKERHUB_REPO}/frontend:${IMAGE_TAG} --no-progress --scanners vuln --exit-code 0 --severity HIGH,CRITICAL --format table > trivy_frontend.txt"
+                    sh "trivy image ${DOCKERHUB_REPO}/backend:${IMAGE_TAG} --no-progress --exit-code 0 --severity HIGH,CRITICAL --format table > trivy_backend.txt"
+                    sh "trivy image ${DOCKERHUB_REPO}/frontend:${IMAGE_TAG} --no-progress --exit-code 0 --severity HIGH,CRITICAL --format table > trivy_frontend.txt"
                 }
             }
         }
