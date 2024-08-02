@@ -8,6 +8,9 @@ pipeline {
         DOCKERHUB_REPO = 'melekbadreddine'
         DOCKERHUB_USERNAME = 'melekbadreddine'
         IMAGE_TAG = 'latest'
+        JENKINS_URL="http://52.143.128.221:8080"
+        JOB_NAME="docker-api-gitops"
+        TOKEN="gitops-token"
         SONAR_TOKEN = credentials('sonarqube')
         JENKINS_API_TOKEN = credentials('jenkins')
         DOCKERHUB_CREDENTIALS = credentials('dockerhub')
@@ -110,7 +113,14 @@ pipeline {
         stage("Trigger CD Pipeline") {
             steps {
                 script {
-                    sh "curl -v -k --user melekbadreddine:${JENKINS_API_TOKEN} -X POST -H 'cache-control: no-cache' -H 'content-type: application/x-www-form-urlencoded' --data 'IMAGE_TAG=${IMAGE_TAG}' 'http://52.143.128.221:8080/job/docker-api-gitops/buildWithParameters?token=gitops-token'"
+                    sh '''
+                        curl -v -k \
+                            --user melekbadreddine:${JENKINS_API_TOKEN} \
+                            -X POST \
+                            -H "Content-Type: application/x-www-form-urlencoded" \
+                            --data "IMAGE_TAG=${IMAGE_TAG}" \
+                            "${JENKINS_URL}/job/${JOB_NAME}/buildWithParameters?token=${TOKEN}&cause=Triggering+build+from+script"
+                      '''
                 }
             }
         }
