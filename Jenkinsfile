@@ -116,11 +116,7 @@ pipeline {
         stage("Trigger CD Pipeline") {
             steps {
                 script {
-                    sh '''
-                        curl -v -k --user melekbadreddine:${JENKINS_API_TOKEN} \
-                            "http://52.143.128.221:8080/job/docker-api-gitops/build?token=gitops-token"
-
-                      '''
+                    sh "curl -v -k --user melekbadreddine:${JENKINS_API_TOKEN} -X POST -H 'cache-control: no-cache' -H 'content-type: application/x-www-form-urlencoded' --data 'IMAGE_TAG=${IMAGE_TAG}' 'http://52.143.128.221:8080/job/docker-api-gitops/buildWithParameters?token=gitops-token'"
                 }
             }
         }
