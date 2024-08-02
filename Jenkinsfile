@@ -110,7 +110,7 @@ pipeline {
         stage("Trigger CD Pipeline") {
             steps {
                 script {
-                    sh "curl -v -k --user melekbadreddine:${JENKINS_API_TOKEN} -X POST -H 'cache-control: no-cache' -H 'content-type: application/x-www-form-urlencoded' --data 'IMAGE_TAG=${IMAGE_TAG}' 'http://52.143.128.221:8080/job/docker-api-cd/buildWithParameters?token=gitops-token'"
+                    sh "curl -v -k --user melekbadreddine:${JENKINS_API_TOKEN} -X POST -H 'cache-control: no-cache' -H 'content-type: application/x-www-form-urlencoded' --data 'IMAGE_TAG=${IMAGE_TAG}' 'http://52.143.128.221:8080/job/docker-api-gitops/buildWithParameters?token=gitops-token'"
                 }
             }
         }
@@ -119,11 +119,9 @@ pipeline {
     post {
         always {
             emailext attachLog: true,
-                subject: "'${currentBuild.result}'",
-                body: "Project: ${env.JOB_NAME}<br/>" +
-                    "Build Number: ${env.BUILD_NUMBER}<br/>" +
-                    "URL: ${env.BUILD_URL}<br/>",
-                to: 'mbadreddine5@gmail.com',                              
+                subject: "Trivy scans",
+                body: "See attached log for details",
+                to: 'mbadreddine5@gmail.com',
                 attachmentsPattern: 'trivyfs.txt,trivy_backend.txt,trivy_frontend.txt'
         }
     }
