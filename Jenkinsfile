@@ -7,9 +7,8 @@ pipeline {
         RELEASE = "1.0.0"
         DOCKERHUB_REPO = 'melekbadreddine'
         DOCKERHUB_USERNAME = 'melekbadreddine'
-        IMAGE_TAG = 'latest'
+        IMAGE_TAG = "${RELEASE}-${BUILD_NUMBER}"
         JENKINS_URL="http://52.143.128.221:8080"
-        JOB_NAME="docker-api-gitops"
         TOKEN="gitops-token"
         SONAR_TOKEN = credentials('sonarqube')
         JENKINS_API_TOKEN = credentials('jenkins')
@@ -88,7 +87,9 @@ pipeline {
         stage('Build and Push Backend Image') {
             steps {
                 script {
-                    docker.build("${DOCKERHUB_REPO}/backend", "backend/").push("${IMAGE_TAG}")
+                    def backendImage = docker.build("${DOCKERHUB_REPO}/backend", "backend/")
+                    backendImage.push("${IMAGE_TAG}")
+                    backendImage.push("latest")
                 }
             }
         }
@@ -96,7 +97,9 @@ pipeline {
         stage('Build and Push Frontend Image') {
             steps {
                 script {
-                    docker.build("${DOCKERHUB_REPO}/frontend", "frontend/").push("${IMAGE_TAG}")
+                    def frontendImage = docker.build("${DOCKERHUB_REPO}/frontend", "frontend/")
+                    frontendImage.push("${IMAGE_TAG}")
+                    frontendImage.push("latest")
                 }
             }
         }
@@ -126,8 +129,10 @@ pipeline {
     post {
         always {
             emailext attachLog: true,
-                subject: "Trivy scans",
-                body: "See attached log for details",
+               subject: "'${currentBuild.result}'",
+               body: "Project: ${env.JOB_NAME}<br/>" +
+                   "Build Number: ${env.BUILD_NUMBER}<br/>" +
+                   "URL: ${env.BUILD_URL}<br/>",
                 to: 'mbadreddine5@gmail.com',
                 attachmentsPattern: 'trivyfs.txt,trivy_backend.txt,trivy_frontend.txt'
         }
