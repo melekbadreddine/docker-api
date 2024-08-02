@@ -114,12 +114,9 @@ pipeline {
             steps {
                 script {
                     sh '''
-                        curl -v -k \
-                            --user melekbadreddine:${JENKINS_API_TOKEN} \
-                            -X POST \
-                            -H "Content-Type: application/x-www-form-urlencoded" \
-                            --data "IMAGE_TAG=${IMAGE_TAG}" \
-                            "${JENKINS_URL}/job/${JOB_NAME}/buildWithParameters?token=${TOKEN}&cause=Triggering+build+from+script"
+                        curl -v -k --user melekbadreddine:${JENKINS_API_TOKEN} \
+                            "http://52.143.128.221:8080/job/docker-api-gitops/build?token=gitops-token"
+
                       '''
                 }
             }
