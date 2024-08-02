@@ -7,7 +7,7 @@ pipeline {
         RELEASE = "1.0.0"
         DOCKERHUB_REPO = 'melekbadreddine'
         DOCKERHUB_USERNAME = 'melekbadreddine'
-        IMAGE_TAG = "latest"
+        IMAGE_TAG = 'latest'
         SONAR_TOKEN = credentials('sonarqube')
         JENKINS_API_TOKEN = credentials('jenkins')
         DOCKERHUB_CREDENTIALS = credentials('dockerhub')

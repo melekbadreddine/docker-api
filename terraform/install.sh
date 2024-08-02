@@ -21,6 +21,7 @@ sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubun
 sudo apt-get update -y
 sudo apt-get install -y docker-ce
 sudo usermod -aG docker ${USER}
+sudo usermod -aG docker jenkins
 
 # Install Node.js 22.3.0
 curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
@@ -31,40 +32,42 @@ sudo apt-get install -y wget
 wget https://github.com/aquasecurity/trivy/releases/download/v0.32.1/trivy_0.32.1_Linux-64bit.deb
 sudo dpkg -i trivy_0.32.1_Linux-64bit.deb
 
-# Install SonarQube
-sudo apt-get install -y unzip
-wget https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-9.9.1.69595.zip
-sudo unzip sonarqube-9.9.1.69595.zip -d /opt
-sudo mv /opt/sonarqube-9.9.1.69595 /opt/sonarqube
-sudo groupadd sonar
-sudo useradd -d /opt/sonarqube -s /bin/bash -g sonar sonar
-sudo chown -R sonar:sonar /opt/sonarqube
+# Run SonarQube container
+sudo docker run -d --name sonar -p 9000:9000 sonarqube:lts-community
 
-# Create a systemd service for SonarQube
-sudo bash -c 'cat <<EOF > /etc/systemd/system/sonarqube.service
+# Create startup script
+cat << EOF | sudo tee /usr/local/bin/start-services.sh
+#!/bin/bash
+sudo systemctl start jenkins
+sudo docker start sonar
+EOF
+
+sudo chmod +x /usr/local/bin/start-services.sh
+
+# Create systemd service for startup script
+cat << EOF | sudo tee /etc/systemd/system/start-services.service
 [Unit]
-Description=SonarQube service
-After=syslog.target network.target
+Description=Start Jenkins and SonarQube
+After=docker.service
 
 [Service]
-Type=forking
-ExecStart=/opt/sonarqube/bin/linux-x86-64/sonar.sh start
-ExecStop=/opt/sonarqube/bin/linux-x86-64/sonar.sh stop
-User=sonar
-Group=sonar
-Restart=always
-LimitNOFILE=65536
-LimitNPROC=4096
+ExecStart=/usr/local/bin/start-services.sh
+Type=oneshot
+RemainAfterExit=yes
 
 [Install]
 WantedBy=multi-user.target
-EOF'
+EOF
 
-# Enable and start SonarQube
-sudo systemctl enable sonarqube
-sudo systemctl start sonarqube
+# Enable and start the service
+sudo systemctl enable start-services.service
+sudo systemctl start start-services.service
 
-# Restart Jenkins to apply all changes
-sudo systemctl restart jenkins
+# Set up swap space
+sudo fallocate -l 4G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 
 echo "Installation completed. Jenkins is running on port 8080, and SonarQube is running on port 9000."

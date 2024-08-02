@@ -59,7 +59,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   name                = "jenkins-sonar-trivy-vm"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
-  size                = "Standard_B2s"
+  size                = "Standard_B4ms"  # 4 vCPUs, 16 GB RAM
   admin_username      = "azureuser"
   network_interface_ids = [
     azurerm_network_interface.nic.id,
@@ -71,7 +71,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   os_disk {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
-    disk_size_gb         = 40
+    disk_size_gb         = 64
   }
 
   source_image_reference {
