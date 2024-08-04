@@ -17,7 +17,7 @@ export class DockerComponent implements OnInit {
   containers: any[] = [];
   images: any[] = [];
   imageToPull: any;
-  isPulling = false; // Add this property
+  isPulling = false;
 
   constructor(
     private dockerService: DockerService,
