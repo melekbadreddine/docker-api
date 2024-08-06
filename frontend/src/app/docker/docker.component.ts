@@ -9,7 +9,6 @@ import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-docker',
   templateUrl: './docker.component.html',
-  styleUrls: ['./docker.component.scss'],
   standalone: true,
   imports: [CommonModule, FormsModule],
 })
@@ -21,7 +20,7 @@ export class DockerComponent implements OnInit {
 
   constructor(
     private dockerService: DockerService,
-    private authService: AuthService,
+    public authService: AuthService,
     private router: Router
   ) {}
 
@@ -78,13 +77,7 @@ export class DockerComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error starting container', error);
-        if (error.status === 401) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Unauthorized',
-            text: 'You do not have permission to start this container.',
-          });
-        }
+        this.handleUnauthorizedError(error);
       },
     });
   }
@@ -97,13 +90,7 @@ export class DockerComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error stopping container', error);
-        if (error.status === 401) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Unauthorized',
-            text: 'You do not have permission to stop this container.',
-          });
-        }
+        this.handleUnauthorizedError(error);
       },
     });
   }
@@ -116,19 +103,10 @@ export class DockerComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error deleting image', error);
-        if (error.status === 401) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Unauthorized',
-            text: 'You do not have permission to delete this image.',
-          });
-        } else {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Failed to delete the image. It might be in use by a container.',
-          });
-        }
+        this.handleUnauthorizedError(
+          error,
+          'You do not have permission to delete this image.'
+        );
       },
     });
   }
@@ -141,87 +119,128 @@ export class DockerComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error deleting container', error);
-        if (error.status === 401) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Unauthorized',
-            text: 'You do not have permission to delete this container.',
-          });
-        } else {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Failed to delete the container.',
-          });
-        }
+        this.handleUnauthorizedError(
+          error,
+          'You do not have permission to delete this container.'
+        );
       },
     });
   }
 
   createContainer(imageName: string) {
-    Swal.fire({
-      title: 'Create Container',
-      html:
-        '<input id="hostPort" class="swal2-input" placeholder="Host Port">' +
-        '<input id="containerPort" class="swal2-input" placeholder="Container Port">',
-      focusConfirm: false,
-      preConfirm: () => {
-        return {
-          hostPort: (document.getElementById('hostPort') as HTMLInputElement)
-            .value,
-          containerPort: (
-            document.getElementById('containerPort') as HTMLInputElement
-          ).value,
-        };
-      },
-    }).then((result) => {
-      if (result.isConfirmed && result.value) {
-        const { hostPort, containerPort } = result.value;
-        if (hostPort && containerPort) {
-          this.dockerService
-            .createContainer(imageName, Number(hostPort), Number(containerPort))
-            .subscribe({
-              next: (response) => {
-                console.log('Container created successfully', response);
-                this.loadContainers();
-                Swal.fire(
-                  'Success',
-                  'Container created successfully',
-                  'success'
-                );
-              },
-              error: (error) => {
-                console.error('Error creating container', error);
-                Swal.fire('Error', 'Failed to create the container', 'error');
-              },
-            });
-        } else {
-          Swal.fire('Error', 'Please fill all the fields', 'error');
+    if (this.authService.isAuthenticated()) {
+      Swal.fire({
+        title: 'Create Container',
+        html:
+          '<input id="hostPort" class="swal2-input" placeholder="Host Port">' +
+          '<input id="containerPort" class="swal2-input" placeholder="Container Port">',
+        focusConfirm: false,
+        preConfirm: () => {
+          return {
+            hostPort: (document.getElementById('hostPort') as HTMLInputElement)
+              .value,
+            containerPort: (
+              document.getElementById('containerPort') as HTMLInputElement
+            ).value,
+          };
+        },
+      }).then((result) => {
+        if (result.isConfirmed && result.value) {
+          const { hostPort, containerPort } = result.value;
+          if (hostPort && containerPort) {
+            this.dockerService
+              .createContainer(
+                imageName,
+                Number(hostPort),
+                Number(containerPort)
+              )
+              .subscribe({
+                next: (response) => {
+                  console.log('Container created successfully', response);
+                  this.loadContainers();
+                  Swal.fire(
+                    'Success',
+                    'Container created successfully',
+                    'success'
+                  );
+                },
+                error: (error) => {
+                  console.error('Error creating container', error);
+                  Swal.fire('Error', 'Failed to create the container', 'error');
+                },
+              });
+          } else {
+            Swal.fire('Error', 'Please fill all the fields', 'error');
+          }
         }
-      }
-    });
+      });
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Unauthorized',
+        text: 'You do not have permission to create a container.',
+      });
+    }
   }
 
   pullImage() {
-    if (this.imageToPull) {
-      const [repository, tag] = this.imageToPull.split(':');
-      this.isPulling = true; // Set loading state to true
-      this.dockerService.pullImage(repository, tag || 'latest').subscribe({
-        next: (response) => {
-          console.log('Image pulled successfully', response);
-          this.loadImages();
-          Swal.fire('Success', 'Image pulled successfully', 'success');
-        },
-        error: (error) => {
-          console.error('Error pulling image', error);
-          Swal.fire('Error', 'Failed to pull the image', 'error');
-        },
-        complete: () => {
-          this.isPulling = false;
-        },
+    if (this.authService.isAuthenticated()) {
+      if (this.imageToPull) {
+        const [repository, tag] = this.imageToPull.split(':');
+        this.isPulling = true;
+        this.dockerService.pullImage(repository, tag || 'latest').subscribe({
+          next: (response) => {
+            console.log('Image pulled successfully', response);
+            this.loadImages();
+            Swal.fire({
+              icon: 'success',
+              title: 'Success',
+              text: 'Image pulled successfully',
+            });
+          },
+          error: (error) => {
+            console.error('Error pulling image', error);
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Failed to pull the image',
+            });
+          },
+          complete: () => {
+            this.isPulling = false;
+          },
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Please enter an image name',
+        });
+      }
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Unauthorized',
+        text: 'You do not have permission to pull images.',
+      });
+    }
+  }
+
+  private handleUnauthorizedError(error: any, defaultMessage?: string) {
+    if (error.status === 401) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Unauthorized',
+        text:
+          defaultMessage ||
+          'You do not have permission to perform this action.',
       });
     } else {
-      Swal.fire('Error', 'Please enter an image name', 'error');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'An unexpected error occurred.',
+      });
     }
   }
 }

@@ -5,11 +5,11 @@ import { AuthService } from '../_services/auth.service';
 import { Router } from '@angular/router';
 import { catchError, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-signin',
   templateUrl: './signin.component.html',
-  styleUrls: ['./signin.component.scss'],
   standalone: true,
   imports: [FormsModule, CommonModule],
 })
@@ -27,13 +27,32 @@ export class SigninComponent {
           if (response && response.accessToken) {
             this.authService.setToken(response.accessToken);
             console.log('Token stored:', response.accessToken);
-            this.router.navigate(['/docker']);
+            Swal.fire({
+              icon: 'success',
+              title: 'Success',
+              text: 'Signed in successfully!',
+              timer: 1500,
+              showConfirmButton: false,
+            }).then(() => {
+              this.router.navigate(['/docker']);
+            });
           } else {
             console.error('No token received in the response');
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'An error occurred during sign in. Please try again.',
+            });
           }
         }),
         catchError((error) => {
           console.error('Error during sign in', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text:
+              error.error?.message || 'Invalid credentials. Please try again.',
+          });
           return of(null);
         })
       )

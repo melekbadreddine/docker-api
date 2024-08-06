@@ -30,7 +30,7 @@ public class DockerController {
 
     @GetMapping("/images")
     @Operation(summary = "List all Docker images")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MODERATOR')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MODERATOR') or hasRole('USER')")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<List<Image>> listImages() {
         return ResponseEntity.ok(dockerService.listImages());

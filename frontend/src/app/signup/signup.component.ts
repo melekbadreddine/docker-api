@@ -5,11 +5,11 @@ import { AuthService } from '../_services/auth.service';
 import { Router } from '@angular/router';
 import { catchError, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-signup',
   templateUrl: './signup.component.html',
-  styleUrls: ['./signup.component.scss'],
   standalone: true,
   imports: [FormsModule, CommonModule],
 })
@@ -33,6 +33,15 @@ export class SignupComponent {
       (role) => this.roles[role as keyof typeof this.roles]
     );
 
+    if (selectedRoles.length === 0) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Please select at least one role.',
+      });
+      return;
+    }
+
     const signupData = {
       ...this.user,
       role: selectedRoles,
@@ -43,10 +52,23 @@ export class SignupComponent {
       .pipe(
         tap((response: any) => {
           console.log('Sign-up response:', response);
-          this.router.navigate(['/signin']);
+          Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: 'Account created successfully!',
+          }).then(() => {
+            this.router.navigate(['/signin']);
+          });
         }),
         catchError((error) => {
           console.error('Error during sign up', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text:
+              error.error.message ||
+              'An error occurred during sign up. Please try again.',
+          });
           return of(null);
         })
       )

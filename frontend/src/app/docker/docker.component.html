@@ -1,116 +1,191 @@
-<div class="container mx-auto px-4">
-  <details class="mb-6">
-    <summary class="text-2xl font-bold cursor-pointer">
-      Pull Docker Image
-    </summary>
-    <div class="mt-4">
-      <input
-        type="text"
-        [(ngModel)]="imageToPull"
-        placeholder="Image name"
-        class="px-4 py-2 border rounded mr-2"
-      />
-      <button
-        (click)="pullImage()"
-        class="bg-blue-500 text-white px-4 py-2 rounded"
+<div class="container mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold mb-8 text-center text-gray-800">
+    Docker Management
+  </h1>
+
+  <div class="space-y-8">
+    <details class="bg-white shadow-md rounded-lg p-6">
+      <summary class="text-2xl font-bold mb-4 text-gray-700 cursor-pointer">
+        Pull Docker Image
+      </summary>
+      <div class="flex items-center space-x-4">
+        <input
+          type="text"
+          [(ngModel)]="imageToPull"
+          placeholder="Image name (e.g., nginx:latest)"
+          class="flex-grow px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <button
+          (click)="pullImage()"
+          [disabled]="isPulling || !authService.isAuthenticated()"
+          class="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50"
+        >
+          {{ isPulling ? "Pulling..." : "Pull Image" }}
+        </button>
+      </div>
+      <div
+        *ngIf="!authService.isAuthenticated()"
+        class="mt-4 text-red-500 font-bold"
       >
-        Pull Image
-      </button>
-      <div *ngIf="isPulling" class="mt-4 flex flex-col items-center">
-        <div class="loader mb-2"></div>
+        You are not authorized to perform this action.
+      </div>
+      <div
+        *ngIf="isPulling"
+        class="mt-4 flex items-center justify-center space-x-2"
+      >
+        <div
+          class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-blue-500"
+        ></div>
         <p class="text-blue-500 font-semibold">Pulling image, please wait...</p>
       </div>
-    </div>
-  </details>
+    </details>
 
-  <details class="mb-6">
-    <summary class="text-2xl font-bold cursor-pointer">Docker Images</summary>
-    <table class="table-auto w-full mt-4">
-      <thead>
-        <tr>
-          <th class="px-4 py-2">ID</th>
-          <th class="px-4 py-2">Repository</th>
-          <th class="px-4 py-2">Tag</th>
-          <th class="px-4 py-2">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let image of images">
-          <td class="border px-4 py-2">{{ image.Id }}</td>
-          <td class="border px-4 py-2">
-            {{ image.RepoTags[0]?.split(":")[0] || "N/A" }}
-          </td>
-          <td class="border px-4 py-2">
-            {{ image.RepoTags[0]?.split(":")[1] || "N/A" }}
-          </td>
-          <td class="border px-4 py-2">
-            <div class="button-container">
-              <button
-                class="bg-red-500 text-white px-4 py-2 rounded"
-                (click)="deleteImage(image.RepoTags[0] || image.Id)"
+    <details class="bg-white shadow-md rounded-lg p-6">
+      <summary class="text-2xl font-bold mb-4 text-gray-700 cursor-pointer">
+        Docker Images
+      </summary>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
-                <i class="fas fa-trash-alt"></i>
-              </button>
-              <button
-                class="bg-green-500 text-white px-4 py-2 rounded"
-                (click)="createContainer(image.RepoTags[0] || image.Id)"
+                ID
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
-                <i class="fas fa-box-open"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </details>
+                Repository
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Tag
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr *ngFor="let image of images">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ image.Id.substring(7, 19) }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {{ image.RepoTags[0]?.split(":")[0] || "N/A" }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ image.RepoTags[0]?.split(":")[1] || "N/A" }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <button
+                  *ngIf="authService.isAuthenticated()"
+                  class="text-green-600 hover:text-green-900 mr-2"
+                  (click)="createContainer(image.RepoTags[0] || image.Id)"
+                >
+                  <i class="fab fa-docker text-blue-500"></i>
+                </button>
+                <button
+                  *ngIf="authService.isAuthenticated()"
+                  class="text-red-600 hover:text-red-900 mr-2"
+                  (click)="deleteImage(image.RepoTags[0] || image.Id)"
+                >
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+                <div
+                  *ngIf="!authService.isAuthenticated()"
+                  class="text-red-500 font-bold"
+                >
+                  Unauthorized
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
 
-  <details class="mb-6">
-    <summary class="text-2xl font-bold cursor-pointer">
-      Docker Containers
-    </summary>
-    <table class="table-auto w-full mt-4">
-      <thead>
-        <tr>
-          <th class="px-4 py-2">ID</th>
-          <th class="px-4 py-2">Name</th>
-          <th class="px-4 py-2">State</th>
-          <th class="px-4 py-2">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let container of containers">
-          <td class="border px-4 py-2">{{ container.Id }}</td>
-          <td class="border px-4 py-2">{{ container.Names }}</td>
-          <td class="border px-4 py-2">{{ container.Status }}</td>
-          <td class="border px-4 py-2">
-            <div class="button-container">
-              <button
-                *ngIf="
-                  container.Status.startsWith('Exited') ||
-                  container.Status === 'Created'
-                "
-                (click)="startContainer(container.Id)"
-                class="bg-blue-500 text-white px-4 py-2 rounded"
+    <details class="bg-white shadow-md rounded-lg p-6">
+      <summary class="text-2xl font-bold mb-4 text-gray-700 cursor-pointer">
+        Docker Containers
+      </summary>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
-                <i class="fas fa-play"></i>
-              </button>
-              <button
-                *ngIf="container.Status.startsWith('Up')"
-                (click)="stopContainer(container.Id)"
-                class="bg-red-500 text-white px-4 py-2 rounded"
+                ID
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
-                <i class="fas fa-stop"></i>
-              </button>
-              <button
-                (click)="deleteContainer(container.Id)"
-                class="bg-red-500 text-white px-4 py-2 rounded"
+                Name
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
-                <i class="fas fa-trash-alt"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </details>
+                State
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr *ngFor="let container of containers">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ container.Id.substring(0, 12) }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {{ container.Names[0].substring(1) }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <span
+                  [ngClass]="{
+                    'text-green-600': container.Status.startsWith('Up'),
+                    'text-red-600': container.Status.startsWith('Exited')
+                  }"
+                >
+                  {{ container.Status }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <button
+                  *ngIf="
+                    container.Status.startsWith('Exited') ||
+                    container.Status === 'Created'
+                  "
+                  (click)="startContainer(container.Id)"
+                  class="text-blue-600 hover:text-blue-900 mr-2"
+                >
+                  <i class="fas fa-play"></i>
+                </button>
+                <button
+                  *ngIf="container.Status.startsWith('Up')"
+                  (click)="stopContainer(container.Id)"
+                  class="text-red-600 hover:text-red-900 mr-2"
+                >
+                  <i class="fas fa-stop"></i>
+                </button>
+                <button
+                  (click)="deleteContainer(container.Id)"
+                  class="text-red-600 hover:text-red-900"
+                >
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+  </div>
 </div>
